@@ -4,8 +4,8 @@ module Solver
   include("paths.jl")
   
   function HamiltonianSolver(save_path::String=default_save_path)
-    save_solution_to = save_path
-    rm(save_solution_to, force=true,recursive=true)
+    save_solution_to = save_path == "" ? save_path : "$main_path/JLD2/$save_path" 
+    rm(save_solution_to, force=true, recursive=true)
     mkdir(save_solution_to) 
     cd(save_solution_to) 
     global p
@@ -28,7 +28,7 @@ module Solver
     initial_conditions=SVector{N_eq}(initial)
     Analytic_N=N
     prob = ODEProblem(result,initial_conditions,tspan,p)
-    solution = solve(prob,RK4(),dt = 1.0*10^(-6),dense = false,saveat = 0.001)
+    solution = solve(prob,RK4(), dt = 1.0*10^(-6), dense = false, saveat = 0.001)
     
     final_state = last(solution)
     open("final_state.txt","a") do io
