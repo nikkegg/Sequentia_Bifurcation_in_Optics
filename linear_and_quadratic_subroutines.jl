@@ -18,8 +18,6 @@ const k = sqrt(g * psi)
 const p = (psi, g/2.0, k)
 const N = 32
 const N_eq = 2N + 1
-
-# Starting and ending simulation times
   
 let
   coefficient_array = OffsetArray(zeros(ComplexF64, N_eq, N_eq), -N:N,   -N:N)
