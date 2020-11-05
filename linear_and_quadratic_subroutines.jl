@@ -19,6 +19,10 @@ const p = (psi, g/2.0, k)
 const N = 32
 const N_eq = 2N + 1
 
+# Starting and ending simulation times
+const tspan=(0.0,100.0)
+const t_name=tspan[2]
+  
 let
   coefficient_array = OffsetArray(zeros(ComplexF64, N_eq, N_eq), -N:N,   -N:N)
   id = ones(ComplexF64, N_eq)
@@ -28,7 +32,7 @@ let
     u = OffsetArray(u,-N:N)
     ran = eachindex(u)
     for q in ran
-      @simd for n in ran
+      for n in ran
         if abs(n-q) > N
           continue
         end
@@ -61,7 +65,7 @@ let
     ran = eachindex(u)
     for q in ran
       for n in ran
-        @simd for m in ran
+        for m in ran
           if abs(q-n+m) > abs(N)
             continue
           else
