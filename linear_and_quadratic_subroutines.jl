@@ -1,5 +1,10 @@
 using OffsetArrays, TensorOperations, StaticArrays, LinearAlgebra
 
+# fast versions for fma
+const ⊕ = Base.FastMath.add_fast 
+const ⊖ = Base.FastMath.sub_fast
+const ⊗ = Base.FastMath.mul_fast
+const ⨸ = Base.FastMath.div_fast
 
 # psi - strength of initial Einstein-Bose condensate being perturbed
 # g non-linearity (Kerr) parameter
@@ -24,15 +29,17 @@ let
     ran = eachindex(u)
     for q in ran
       @simd for n in ran
-        if abs(n-q) <= N
-          @fastmath @inbounds coefficient_array[q,n] = -(2⊗p[2]⊗p[1]⊗u[n]⊗conj(u[n-q]) ⊕ (p[2])⊗conj(p[1])⊗u[n]⊗u[q-n])
-          if q == n
-            @fastmath @inbounds coefficient_array[q,q] = (((abs(q)^2)⊗(  (p[3])^2⨸2)⊖p[2]⊗abs2(p[1]))⊗u[q]⊖p[2]⊗(p[1])^2⊗conj(u[-q])) - 2⊗p[2]⊗p[1]⊗u[n]⊗conj(u[n-q]) - (p[2])⊗conj(p[1])⊗u[n]⊗u[q-n]
-          end
+        if abs(n-q) > N
+          continue
+        end
+        if q == n
+          @fastmath @inbounds coefficient_array[q,q] = (((abs(q)^2)⊗(  (p[3])^2⨸2)⊖p[2]⊗abs2(p[1]))⊗u[q]⊖p[2]⊗(p[1])^2⊗conj(u[-q])) - 2⊗p[2]⊗p[1]⊗u[n]⊗conj(u[n-q]) - (p[2])⊗conj(p[1])⊗u[n]⊗u[q-n]
+        else
+          @fastmath @inbounds coefficient_array[q,n] = -(2⊗p[2]⊗p[1]⊗u[n]⊗conj(u[n-q]) ⊕ (p[2])⊗conj(p[1])⊗u[n]⊗u[q-n])  
+        end
         # if q == 0
           # @inbounds coefficient_array[q,n] = 0.0 +     0.0im::Complex{Bool}
         # end
-        end
       end
     end
     coefficients = parent(coefficient_array)
@@ -55,7 +62,9 @@ let
     for q in ran
       for n in ran
         @simd for m in ran
-          if abs(q-n+m) <= abs(N)
+          if abs(q-n+m) > abs(N)
+            continue
+          else
             @fastmath @inbounds coefficient_array[q,n,m] = -(p[2])⊗u[n]⊗conj(u[m])⊗u[q-n+m]::ComplexF64
           end
        #= if q == 0
