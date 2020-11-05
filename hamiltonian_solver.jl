@@ -9,7 +9,7 @@ module Solver
   # modes_to_perturb - array of modes to be perturbed. Normally, these
   # are selected as modes with highest amplitudes.
   function HamiltonianSolver(tspan::Tuple{Float64,Float64}, save_path::String = default_save_path, ϵ::ComplexF64 = 0.0 + 0.0im, modes_to_perturb::Array{Any} = [])
-    save_solution_to = "$ϵ, $save_path" == "" ? save_path : "$main_path/JLD2/$ϵ, $save_path" 
+    save_solution_to = "epsilon = $ϵ, $save_path" == "" ? save_path : "$main_path/JLD2/epsilon = $ϵ, $save_path" 
     rm(save_solution_to, force = true, recursive = true)
     mkdir(save_solution_to) 
     cd(save_solution_to) 
