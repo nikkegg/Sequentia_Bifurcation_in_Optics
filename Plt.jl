@@ -1,18 +1,16 @@
-include("C:/Users/visenkon/Desktop/hamiltonian_solver.jl")          
 module Plt
 using Plots
 pyplot()
 import PyPlot
-function plots(N::Int64,psi::Float64,g::Float64,spec_plot::Array{T},α::Float64,ν::Float64, to_plot::Bool) where T<:Int64 
+function plots(N::Int64,psi::Float64,g::Float64,spec_plot::Array{T},α::Float64 = 0.0,ν::Float64 = 0.0m) where T<:Int64 
 path1 = "C:/Users/visenkon/Desktop/Corrected Phd write-up figure 1, alph = 0, k= 1.0, g=1.0, psi=1.0, N=32, t_final = 100.0"
 cd(path1)
 tspan=(0.0, 100.0)
 JLD2.@load "sol_tf=$(tspan[2]).jld2" sol
-if to_plot
 t_name=tspan[2]
 Analytic_N=Int64(floor((N-1)/2))
 path="C:/Users/visenkon/"
-# path1="C:/Users/visenkon/Desktop/JLD2/Dissipative solution for alpha = , g=$g, psi=$psi, N=$Analytic_N, t_final = $(tspan[2])"#"C:/Users/visenkon/Desktop/JLD2 tfinal =400 t0 = 0.1,for g=$g, psi=$psi, N=$Analytic_N,t=$t_name"
+
 realp=[real.(sol[i,:]) for i in 1:N]
 imp=[imag.(sol[i,:]) for i in 1:N]
 out_mag=[abs2.(sol[i,:]) for i in 1:N]
@@ -180,9 +178,6 @@ savefig(magnitude1,"mag1.eps")
 savefig(magnitude3,"mag3.eps")
 savefig(spectrum,"spectrum.eps")
 cd(path)
-else
-return sol
-end
 end
 
 nu = [0.0027,0.0028,0.0029,0.003, 0.0031]

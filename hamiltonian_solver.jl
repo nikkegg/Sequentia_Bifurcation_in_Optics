@@ -8,7 +8,7 @@ module Solver
   # ϵ - complex perturbation paramater if perturbation is needed
   # modes_to_perturb - array of modes to be perturbed. Normally, these
   # are selected as modes with highest amplitudes.
-  function HamiltonianSolver(tspan::Tuple{Float64,Float64}, save_path::String = default_save_path, ϵ::ComplexF64 = 0.0 + 0.0im, modes_to_perturb::Array{Any} = [], starting_values::Array{Any} = [])
+  function HamiltonianSolver(tspan::Tuple{Float64,Float64}, save_path::String = default_save_path, ϵ::ComplexF64 = 0.0 + 0.0im, modes_to_perturb = [], starting_values = [])
     save_solution_to = "epsilon = $ϵ, $save_path" == "" ? save_path : "$main_path/JLD2/epsilon = $ϵ, $save_path" 
     rm(save_solution_to, force = true, recursive = true)
     mkdir(save_solution_to) 
@@ -28,8 +28,14 @@ module Solver
     # Perturb specified nodes by ϵ if ϵ and perturbed mode array is 
     # passed as an argument.
     if !isempty(modes_to_perturb) && !(ϵ == 0.0 + 0.0im)
-      for mode in modes_to_perturb
-        initial[mode + N + 1] += ϵ
+      if typeof(initial) == Array{ComplexF64,1}   
+        for mode in modes_to_perturb
+          initial[mode + N + 1] += ϵ
+        end
+      else
+        for mode in modes_to_perturb
+          setindex(initial, initial[mode + N + 1] + ϵ, mode + N + 1)
+        end
       end
     end
     
@@ -41,9 +47,9 @@ module Solver
     solution = solve(prob,RK4(), dt = 1.0*10^(-6), dense = false, saveat = 0.001)
     
     # Saving final state of the system
-    final_state = last(solution)
+    final_states = last(solution)
     open("final_state.txt","a") do io
-      for state in final_state
+      for state in final_states
         println(io,state)
       end
     end
@@ -52,20 +58,16 @@ module Solver
     @save "sol_tf=$(tspan[2]).jld2" solution
     cd(main_path)
     println("Run time: $(round((Dates.now() - start_time), Minute))")
-    return final_state
+    return final_states
   end
   
-  function NthBifurcation(tspan::Tuple{Float64,Float64}, bifurcation_number::Int64, ϵ::ComplexF64, modes_to_perturb::Array{Int64}, starting_values, save_path::String = default_save_path, path_to_data::String = "")
-    if path_to_data == ""
-      starting_values = HamiltonianSolver(tspan, save_path, ϵ, modes_to_perturb)
-    else
-      cd(path_to_data)
-      JLD2.@load "sol_tf=$(tspan[2]).jld2" sol
-      starting_values = last(sol)
+  function NthBifurcation(tspan::Tuple{Float64,Float64}, bifurcation_number::Int64, ϵ::ComplexF64, modes_to_perturb::Array{Int64}, starting_values, save_path::String = default_save_path)
+    if isempty(starting_values)
+      starting_values = HamiltonianSolver(tspan, save_path)
     end
     
     for iteration in 1:bifurcation_number
-      solution = HamiltonianSolver(tspan, save_path * " bifurcation $iteration", ϵ, modes_to_perturb, starting_values)
+      solution = HamiltonianSolver(tspan, save_path * " bifurcation $(iteration + 1)", ϵ, modes_to_perturb, starting_values)
         starting_values = solution
       end
     return
