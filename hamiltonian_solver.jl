@@ -28,15 +28,9 @@ module Solver
     # Perturb specified nodes by ϵ if ϵ and perturbed mode array is 
     # passed as an argument.
     if !isempty(modes_to_perturb) && !(ϵ == 0.0 + 0.0im)
-      if typeof(initial) == Array{ComplexF64,1}   
-        for mode in modes_to_perturb
+      for mode in modes_to_perturb
           initial[mode + N + 1] += ϵ
-        end
-      else
-        for mode in modes_to_perturb
-          setindex(initial, initial[mode + N + 1] + ϵ, mode + N + 1)
-        end
-      end
+       end
     end
     
     initial_conditions = SVector{N_eq}(initial)
@@ -51,6 +45,13 @@ module Solver
     open("final_state.txt","a") do io
       for state in final_states
         println(io,state)
+      end
+    end
+    
+    # Saving absolute values of the final state
+    open("final_state_mag.txt","a") do io
+      for state in final_states
+        println(io,abs2(state))
       end
     end
     
@@ -71,5 +72,11 @@ module Solver
         starting_values = solution
       end
     return
+  end
+
+  function bifurcate_for(epsilon, tspan, save_path, modes_to_perturb, starting_values)
+    for ϵ in epsilon
+      HamiltonianSolver(tspan, save_path, ϵ, modes_to_perturb, starting_values)
+    end
   end
 end
